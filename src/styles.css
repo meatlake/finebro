@@ -61,6 +61,33 @@ button {
   padding: 24px;
 }
 
+.loading-shell {
+  display: grid;
+  place-items: center;
+}
+
+.loading-surface {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, 100%);
+}
+
+.loading-surface span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.loading-surface strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
 .topbar,
 .summary-grid,
 .main-grid,

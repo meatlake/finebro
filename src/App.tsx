@@ -14,6 +14,7 @@ import {
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateSummary,
+  createInitialState,
   formatCurrency,
   formatMonthLabel,
   formatPercent,
@@ -40,14 +41,37 @@ const defaultDraft: TransactionDraft = {
 };
 
 export function App() {
-  const [state, setState] = useState<FinanceState>(() => loadFinanceState());
+  const [state, setState] = useState<FinanceState>(() => createInitialState());
+  const [isStorageReady, setIsStorageReady] = useState(false);
   const [draft, setDraft] = useState<TransactionDraft>(defaultDraft);
   const [query, setQuery] = useState("");
   const importInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    saveFinanceState(state);
-  }, [state]);
+    let isActive = true;
+
+    void loadFinanceState()
+      .then((storedState) => {
+        if (isActive) {
+          setState(storedState);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsStorageReady(true);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isStorageReady) {
+      void saveFinanceState(state);
+    }
+  }, [isStorageReady, state]);
 
   const summary = useMemo(
     () => calculateSummary(state.transactions, state.selectedMonth),
@@ -81,6 +105,22 @@ export function App() {
         .includes(normalizedQuery);
     })
     .sort((left, right) => right.date.localeCompare(left.date));
+
+  if (!isStorageReady) {
+    return (
+      <main className="app-shell loading-shell">
+        <section className="surface loading-surface">
+          <div className="brand-mark" aria-hidden="true">
+            <WalletCards size={22} />
+          </div>
+          <div>
+            <span>Finebro</span>
+            <strong>Opening your ledger</strong>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   function updateDraft(nextDraft: Partial<TransactionDraft>) {
     setDraft((current) => {
