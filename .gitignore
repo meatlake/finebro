@@ -24,6 +24,8 @@ build/
 .next/
 out/
 coverage/
+*.tsbuildinfo
+src-tauri/target/
 
 # Python
 __pycache__/
