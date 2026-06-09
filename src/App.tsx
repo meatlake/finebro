@@ -322,6 +322,17 @@ export function App() {
             ))}
           </div>
 
+          <div className="chart-legend">
+            <div className="legend-item">
+              <span className="legend-dot income" />
+              Income
+            </div>
+            <div className="legend-item">
+              <span className="legend-dot expense" />
+              Expenses
+            </div>
+          </div>
+
           <div className="category-strip" aria-label="Top categories">
             {topCategories.map((item) => (
               <div key={item.category}>
@@ -346,19 +357,19 @@ export function App() {
 
           <div className="segmented-control" role="group" aria-label="Transaction type">
             <button
-              className={draft.kind === "expense" ? "active" : ""}
+              className={`${draft.kind === "expense" ? "active expense" : ""}`}
               type="button"
               onClick={() => updateDraft({ kind: "expense" })}
             >
-              <ArrowDownCircle size={17} />
+              <ArrowDownCircle size={16} />
               Expense
             </button>
             <button
-              className={draft.kind === "income" ? "active" : ""}
+              className={`${draft.kind === "income" ? "active income" : ""}`}
               type="button"
               onClick={() => updateDraft({ kind: "income" })}
             >
-              <ArrowUpCircle size={17} />
+              <ArrowUpCircle size={16} />
               Income
             </button>
           </div>
@@ -456,35 +467,46 @@ export function App() {
           </div>
 
           <div className="transaction-list">
-            {filteredTransactions.map((transaction) => (
-              <article className="transaction-item" key={transaction.id}>
-                <div className={`transaction-icon ${transaction.kind}`}>
-                  {transaction.kind === "income" ? (
-                    <ArrowUpCircle size={18} />
-                  ) : (
-                    <ArrowDownCircle size={18} />
-                  )}
-                </div>
-                <div className="transaction-main">
-                  <strong>{transaction.description}</strong>
-                  <span>
-                    {transaction.category} / {transaction.account} / {transaction.date}
-                  </span>
-                </div>
-                <strong className={transaction.kind === "income" ? "money-in" : "money-out"}>
-                  {transaction.kind === "income" ? "+" : "-"}
-                  {formatCurrency(transaction.amount, true)}
-                </strong>
-                <button
-                  className="icon-button subtle"
-                  type="button"
-                  title="Delete transaction"
-                  onClick={() => deleteTransaction(transaction.id)}
-                >
-                  <Trash2 size={17} />
-                </button>
-              </article>
-            ))}
+            {filteredTransactions.length === 0 ? (
+              <div className="empty-state">
+                <WalletCards size={36} />
+                <strong>{query ? "No matching transactions" : "No transactions yet"}</strong>
+                <span>{query ? "Try a different search term" : "Add your first transaction using the form"}</span>
+              </div>
+            ) : (
+              filteredTransactions.map((transaction) => (
+                <article className="transaction-item" key={transaction.id}>
+                  <div className={`transaction-icon ${transaction.kind}`}>
+                    {transaction.kind === "income" ? (
+                      <ArrowUpCircle size={17} />
+                    ) : (
+                      <ArrowDownCircle size={17} />
+                    )}
+                  </div>
+                  <div className="transaction-main">
+                    <strong>{transaction.description}</strong>
+                    <div className="transaction-meta">
+                      <span className="tx-chip">{transaction.category}</span>
+                      <span className="tx-chip">{transaction.account}</span>
+                      <span className="tx-date">{transaction.date}</span>
+                      {transaction.recurring && <span className="tx-chip">↻ Recurring</span>}
+                    </div>
+                  </div>
+                  <strong className={transaction.kind === "income" ? "money-in" : "money-out"}>
+                    {transaction.kind === "income" ? "+" : "−"}
+                    {formatCurrency(transaction.amount, true)}
+                  </strong>
+                  <button
+                    className="icon-button subtle"
+                    type="button"
+                    title="Delete transaction"
+                    onClick={() => deleteTransaction(transaction.id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </article>
+              ))
+            )}
           </div>
         </section>
 
@@ -502,19 +524,22 @@ export function App() {
               <div className="budget-row" key={budget.category}>
                 <div className="budget-top">
                   <span>{budget.category}</span>
-                  <strong>{formatCurrency(budget.spent)} </strong>
+                  <strong>{formatCurrency(budget.spent)}</strong>
                 </div>
                 <div className="budget-track">
                   <span
                     style={{
                       width: `${Math.min(budget.percent * 100, 100)}%`,
-                      backgroundColor: budget.percent > 1 ? "#c75146" : budget.color
+                      backgroundColor: budget.percent > 1 ? "var(--red)" : budget.color
                     }}
                   />
                 </div>
-                <small>
-                  {budget.remaining >= 0 ? "Left" : "Over"} {formatCurrency(Math.abs(budget.remaining))}
-                </small>
+                <div className="budget-footer">
+                  <small className={budget.remaining < 0 ? "budget-over" : ""}>
+                    {budget.remaining >= 0 ? `${formatCurrency(budget.remaining)} left` : `${formatCurrency(Math.abs(budget.remaining))} over`}
+                  </small>
+                  <small>{Math.round(budget.percent * 100)}%</small>
+                </div>
               </div>
             ))}
           </div>
@@ -534,9 +559,9 @@ interface MetricCardProps {
 function MetricCard({ icon, label, value, tone }: MetricCardProps) {
   return (
     <article className={`metric-card ${tone}`}>
-      <div aria-hidden="true">{icon}</div>
-      <span>{label}</span>
-      <strong>{value}</strong>
+      <div className="metric-card-icon" aria-hidden="true">{icon}</div>
+      <span className="metric-card-label">{label}</span>
+      <strong className="metric-card-value">{value}</strong>
     </article>
   );
 }
